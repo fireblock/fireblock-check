@@ -308,8 +308,8 @@ async function checkUrlContent (url, text, useruid) {
     // metadata signature
     let ckMetadataSignature = true
     if (result.certificate.metadataSignature) {
-    let metadataSID = sha3(result.certificate.metadata)
-    let metadataMsg = `${metadataSID}||${hash}||${key.keyuid}`
+      let metadataSID = sha3(result.certificate.metadata)
+      let metadataMsg = `${metadataSID}||${hash}||${key.keyuid}`
       ckMetadataSignature = await verify(key.key, metadataMsg, result.certificate.metadataSignature)
       // DEBUG console.log(`ckMetadataSignature`, ckMetadataSignature)
     }
