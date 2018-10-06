@@ -306,10 +306,13 @@ async function checkUrlContent (url, text, useruid) {
     let ckCertifcateSignature = await verify(key.key, certificateMsg, result.certificate.signature)
     // DEBUG console.log(`ckCertifcateSignature`, ckCertifcateSignature)
     // metadata signature
+    let ckMetadataSignature = true
+    if (result.certificate.metadataSignature) {
     let metadataSID = sha3(result.certificate.metadata)
     let metadataMsg = `${metadataSID}||${hash}||${key.keyuid}`
-    let ckMetadataSignature = await verify(key.key, metadataMsg, result.certificate.metadataSignature)
-    // DEBUG console.log(`ckMetadataSignature`, ckMetadataSignature)
+      ckMetadataSignature = await verify(key.key, metadataMsg, result.certificate.metadataSignature)
+      // DEBUG console.log(`ckMetadataSignature`, ckMetadataSignature)
+    }
     // delegation signature
     let delegationMsg = `approved key is ${key.keyuid} at ${result.key.date}`
     let ckDelegationSignature = await verify(pkey.key, delegationMsg, result.key.signature)
