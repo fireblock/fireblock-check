@@ -1,0 +1,39 @@
+{
+  "name": "fireblock-check",
+  "version": "1.9.0",
+  "description": "JS Library to check the fireblock website",
+  "main": "index.js",
+  "scripts": {
+    "serve": "webpack-dev-server --mode development --open",
+    "dev": "webpack --mode development",
+    "build": "webpack --mode production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fireblock/fireblock-check.git"
+  },
+  "keywords": [
+    "Fireblock",
+    "check"
+  ],
+  "author": "laurent.mallet@gmail.com",
+  "license": "GNU General Public License v3.0",
+  "bugs": {
+    "url": "https://github.com/fireblock/fireblock-check/issues"
+  },
+  "homepage": "https://fireblock.io",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "js-sha3": "^0.8.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/runtime-corejs2": "^7.0.0",
+    "babel-loader": "^8.0.2",
+    "webpack": "^4.20.0",
+    "webpack-cli": "^3.1.1",
+    "webpack-dev-server": "^3.1.9"
+  }
+}
