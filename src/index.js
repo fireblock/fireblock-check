@@ -268,7 +268,7 @@ async function checkJSFile (url, text, name, useruid) {
   } else {
     jsfile = m1
   }
-  let appjs = url + '/static/js/' + jsfile
+  let appjs = url + '/js/' + jsfile
   let response = await HTTP.get(appjs)
   let js1 = response.data
   let r = await checkUrlContent (appjs, js1, useruid)
