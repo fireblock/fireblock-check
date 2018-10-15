@@ -37,6 +37,88 @@ const ERROR_SITE_HACKED = 'Critical ERROR: this is not the real website!'
 
 const ECDSA_PREFIX = '0x200000000000000000000000'
 
+function utf8ToBytes (string, units) {
+  units = units || Infinity
+  var codePoint
+  var length = string.length
+  var leadSurrogate = null
+  var bytes = []
+  var i = 0
+
+  for (; i < length; i++) {
+    codePoint = string.charCodeAt(i)
+
+    // is surrogate component
+    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+      // last char was a lead
+      if (leadSurrogate) {
+        // 2 leads in a row
+        if (codePoint < 0xDC00) {
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          leadSurrogate = codePoint
+          continue
+        } else {
+          // valid surrogate pair
+          codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
+          leadSurrogate = null
+        }
+      } else {
+        // no lead yet
+
+        if (codePoint > 0xDBFF) {
+          // unexpected trail
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        } else if (i + 1 === length) {
+          // unpaired lead
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        } else {
+          // valid lead
+          leadSurrogate = codePoint
+          continue
+        }
+      }
+    } else if (leadSurrogate) {
+      // valid bmp char, but last char was a lead
+      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+      leadSurrogate = null
+    }
+
+    // encode utf8
+    if (codePoint < 0x80) {
+      if ((units -= 1) < 0) break
+      bytes.push(codePoint)
+    } else if (codePoint < 0x800) {
+      if ((units -= 2) < 0) break
+      bytes.push(
+        codePoint >> 0x6 | 0xC0,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x10000) {
+      if ((units -= 3) < 0) break
+      bytes.push(
+        codePoint >> 0xC | 0xE0,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x200000) {
+      if ((units -= 4) < 0) break
+      bytes.push(
+        codePoint >> 0x12 | 0xF0,
+        codePoint >> 0xC & 0x3F | 0x80,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else {
+      throw new Error('Invalid code point')
+    }
+  }
+
+  return new Uint8Array(bytes)
+}
+
+
 /**
  * compute a keccak256 as ethereum
  * @param {string} str
@@ -52,7 +134,7 @@ function sha3 (str) {
  * @returns sha2_256
  */
 async function sha256 (str) {
-  let data = new TextEncoder('utf-8').encode(str)
+  let data = utf8ToBytes(str)
   let r = await window.crypto.subtle.digest({name: 'SHA-256'}, data)
   let digestView = new Uint8Array(r)
   let hash = ''
@@ -70,7 +152,7 @@ async function sha256 (str) {
  * @param {String} str
  */
 async function sha1 (str) {
-  let data = new TextEncoder('utf-8').encode(str)
+  let data = utf8ToBytes(str)
   let r = await window.crypto.subtle.digest({name: 'SHA-1'}, data)
   let digestView = new Uint8Array(r)
   let hash = ''
@@ -131,7 +213,7 @@ async function loadPublicKey (pubkey) {
  * @returns {bool} true if signature is checked
  */
 async function verify (pubkeyObj, msg, signature) {
-  let data = new TextEncoder('utf-8').encode(msg)
+  let data = utf8ToBytes(msg)
   let sig = Buffer.from(signature, 'base64')
   let res = await window.crypto.subtle.verify({ name: 'ECDSA', hash: { name: 'SHA-256' } }, pubkeyObj, sig, data)
   return res
@@ -354,6 +436,21 @@ async function checkUrlContent (url, text, useruid) {
 let HTTP
 
 async function main (url, useruid) {
+  if (/Edge/.test(navigator.userAgent)) {
+    let head = document.getElementsByTagName('head')[0]
+    let script = document.createElement('script')
+    script.type = 'text/javascript'
+    script.src = 'https://fireblock.io/static/js/webcrypto-liner.min.js'
+    head.appendChild(script)
+    let script2 = document.createElement('script')
+    script2.type = 'text/javascript'
+    script2.src = 'https://fireblock.io/static/js/asmcrypto.js'
+    head.appendChild(script2)
+    let script3 = document.createElement('script')
+    script3.type = 'text/javascript'
+    script3.src = 'https://fireblock.io/static/js/elliptic.js'
+    head.appendChild(script3)
+  }
   HTTP = axios.create({ baseURL: url })
   try {
     // read index.html content
