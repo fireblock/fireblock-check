@@ -317,13 +317,9 @@ async function userVerify (hash, useruuid) {
   } catch (err) {
     throw new FError(NETWORK_ERROR, 'verify')
   }
-  if (response.data && response.data.data) {
+  if (response.status === 200 && response.data) {
     // object with verified, signature and eth
-    let result = response.data.data
-    if (result.id !== 'success') {
-      console.error('userVerify failed', response)
-      throw new FError(UNKNOWN_ERROR, 'verify error')
-    }
+    let result = response.data
     if (result.value.length === 0) {
       console.error('userVerify no result', response)
       throw new FError(UNKNOWN_ERROR, 'verify error')
