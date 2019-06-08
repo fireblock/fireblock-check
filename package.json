@@ -24,7 +24,7 @@
   },
   "homepage": "https://fireblock.io",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.19.0",
     "js-sha3": "^0.8.0"
   },
   "devDependencies": {
